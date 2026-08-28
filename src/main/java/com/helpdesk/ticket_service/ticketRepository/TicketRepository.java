@@ -20,5 +20,6 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     List<Ticket> findByCreatedAtAfter(Date start);
 
     TicketResponseDto findByTitle(String title);
-    List<Ticket> findByDescriptionContaining(String description);
+    List<TicketResponseDto> findByTitleContaining(String title);
+    List<TicketResponseDto> findByDescriptionContaining(String description);
 }

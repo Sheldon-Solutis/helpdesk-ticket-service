@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -24,6 +25,14 @@ public class TicketService {
                                 .stream()
                                 .map(TicketResponseDto::new)
                                 .toList();
+    }
+
+    public List<TicketResponseDto> searchTickets(String word) {
+        List<TicketResponseDto> titleFind = ticketRepository.findByTitleContaining(word);
+        if (titleFind == null) {
+            return ticketRepository.findByDescriptionContaining(word);
+        }
+        return titleFind;
     }
 
     public TicketResponseDto findById(Long id) {

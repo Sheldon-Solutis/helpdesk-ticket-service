@@ -1,8 +1,8 @@
 package com.helpdesk.ticket_service.controller;
 
-import com.helpdesk.ticket_service.dto.TicketCreateDto;
-import com.helpdesk.ticket_service.dto.TicketResponseDto;
+import com.helpdesk.ticket_service.dto.*;
 import com.helpdesk.ticket_service.service.TicketService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,24 +19,32 @@ public class TicketController {
     private final TicketService ticketService;
 
     @GetMapping()
-    public ResponseEntity<List<TicketResponseDto>> findAllTickets(){
+    public ResponseEntity<List<TicketResponseDto>> findAllTickets() {
         return ResponseEntity.ok(ticketService.findAllTickets());
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<TicketResponseDto>> searchTickets(
+            @RequestParam(name = "word", required = false)
+            String word) {
+        return ResponseEntity.ok().body(ticketService.searchTickets(word));
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<TicketResponseDto> findById(@PathVariable Long id) {
+    public ResponseEntity<TicketResponseDto> findById(
+            @PathVariable Long id) {
         return ResponseEntity.ok().body(ticketService.findById(id));
     }
 
-    @GetMapping("/Customer/{id}")
-    public ResponseEntity<List<TicketResponseDto>> getTicketsOfOneClient(@PathVariable Long id) {
-        List<TicketResponseDto> responseList = ticketService.findTicketByCustomerId(id);
-
-        return ResponseEntity.ok(responseList);
+    @GetMapping("/customer")
+    public ResponseEntity<List<TicketResponseDto>> getTicketsOfOneClient(
+            @RequestParam(name = "id") Long id) {
+        return ResponseEntity.ok(ticketService.findTicketByCustomerId(id));
     }
 
     @PostMapping
-    public ResponseEntity<TicketResponseDto> createTicket(@RequestBody TicketCreateDto dto) {
+    public ResponseEntity<TicketResponseDto> createTicket(
+            @RequestBody @Valid TicketCreateDto dto) {
         TicketResponseDto responseDto = ticketService.createTicket(dto);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
