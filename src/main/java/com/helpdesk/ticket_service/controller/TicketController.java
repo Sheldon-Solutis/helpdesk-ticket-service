@@ -23,9 +23,18 @@ public class TicketController {
         return ResponseEntity.ok(ticketService.findAllTickets());
     }
 
+    @GetMapping("/filter")
+    public ResponseEntity<List<TicketResponseDto>> findAllTicketsStatus(
+            @RequestParam(name = "status", required = false) String status,
+            @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "priority", required = false) String priority
+            ) {
+        return ResponseEntity.ok().body(ticketService.TicketFilter(status, category, priority));
+    }
+
     @GetMapping("/search")
     public ResponseEntity<List<TicketResponseDto>> searchTickets(
-            @RequestParam(name = "word", required = false)
+            @PathVariable(name = "word")
             String word) {
         return ResponseEntity.ok().body(ticketService.searchTickets(word));
     }
@@ -44,8 +53,9 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<TicketResponseDto> createTicket(
-            @RequestBody @Valid TicketCreateDto dto) {
-        TicketResponseDto responseDto = ticketService.createTicket(dto);
+            @RequestBody @Valid TicketCreateDto dto,
+            @RequestHeader(name = "Customer-Id") Long id) {
+        TicketResponseDto responseDto = ticketService.createTicket(dto, id);
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")
