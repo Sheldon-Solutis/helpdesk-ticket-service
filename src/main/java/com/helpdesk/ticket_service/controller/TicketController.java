@@ -1,5 +1,6 @@
 package com.helpdesk.ticket_service.controller;
 
+import com.helpdesk.ticket_service.Enums.Status;
 import com.helpdesk.ticket_service.dto.*;
 import com.helpdesk.ticket_service.service.TicketService;
 import jakarta.validation.Valid;
@@ -18,9 +19,35 @@ public class TicketController {
 
     private final TicketService ticketService;
 
+    @DeleteMapping("/{id}")
+    public ResponseEntity<TicketResponseDto> deleteTicket(@PathVariable Long id) {
+        return ResponseEntity.ok().body(ticketService.deleteTicket(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<TicketResponseDto> updateTicket(
+            @PathVariable Long id,
+            @RequestBody @Valid TicketUpdateDto updateDto){
+        return ResponseEntity.ok().body(ticketService.updateTicket(id, updateDto));
+    }
+
+    @PatchMapping("/{id}/technician={technician}")
+    public ResponseEntity<TicketResponseDto> assigneTicket(
+            @PathVariable Long id,
+            @PathVariable("technician") Long technician ){
+        return ResponseEntity.ok().body(ticketService.assignTicket(id, technician));
+    }
+
+    @PatchMapping("/{id}/status={status}")
+    public ResponseEntity<TicketResponseDto> updateTicketStatus(
+            @PathVariable Long id,
+            @PathVariable("status") @Valid Status status){
+        return ResponseEntity.ok().body(ticketService.updateTicketStatus(id, status));
+    }
+
     @GetMapping()
     public ResponseEntity<List<TicketResponseDto>> findAllTickets() {
-        return ResponseEntity.ok(ticketService.findAllTickets());
+        return ResponseEntity.ok().body(ticketService.findAllTickets());
     }
 
     @GetMapping("/filter")
@@ -48,7 +75,7 @@ public class TicketController {
     @GetMapping("/customer")
     public ResponseEntity<List<TicketResponseDto>> getTicketsOfOneClient(
             @RequestParam(name = "id") Long id) {
-        return ResponseEntity.ok(ticketService.findTicketByCustomerId(id));
+        return ResponseEntity.ok().body(ticketService.findTicketByCustomerId(id));
     }
 
     @PostMapping

@@ -11,7 +11,7 @@ public class TicketEventPublisher {
     private final RabbitTemplate rabbitTemplate;
     public static final String EXCHANGE_NAME = "helpdesk.exchange";
 
-    public void publishCreated(
+    public void publish(
             String routingKey,
             Object event
     ){
@@ -22,41 +22,7 @@ public class TicketEventPublisher {
                 event,
                 message -> {
                     message.getMessageProperties()
-                            .setHeader("event.type","ticket.created");
-                    return message;
-                }
-        );
-    }
-
-    public void publishAssigned(
-            String routingKey,
-            Object event
-    ){
-
-        rabbitTemplate.convertAndSend(
-                EXCHANGE_NAME,
-                routingKey,
-                event,
-                message -> {
-                    message.getMessageProperties()
-                            .setHeader("event.type","ticket.assigned");
-                    return message;
-                }
-        );
-    }
-
-    public void publishStatusChanged(
-            String routingKey,
-            Object event
-    ){
-
-        rabbitTemplate.convertAndSend(
-                EXCHANGE_NAME,
-                routingKey,
-                event,
-                message -> {
-                    message.getMessageProperties()
-                            .setHeader("event.type","ticket.statuschanged");
+                            .setHeader("event.type",routingKey);
                     return message;
                 }
         );
