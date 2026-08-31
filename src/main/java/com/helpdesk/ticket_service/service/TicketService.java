@@ -10,12 +10,12 @@ import com.helpdesk.ticket_service.messaging.publisher.TicketEventPublisher;
 import com.helpdesk.ticket_service.model.Ticket;
 import com.helpdesk.ticket_service.ticketRepository.TicketRepository;
 import jakarta.persistence.EntityNotFoundException;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class TicketService {
 
     private final String CREATED_ROUTING_KEY = "ticket.created";
@@ -61,20 +61,11 @@ public class TicketService {
     }
 
     public List<TicketResponseDto> searchTickets(String word) {
-        List<TicketResponseDto> titleFind = ticketRepository.findByTitleContaining(word)
-                                            .stream()
-                                            .map(TicketResponseDto::new)
-                                            .toList();
-        System.out.println(titleFind);
-        if (titleFind.isEmpty()) {
-            List<TicketResponseDto> find = ticketRepository.findByDescriptionContaining(word)
-                                            .stream()
-                                            .map(TicketResponseDto::new)
-                                            .toList();
-            System.out.println(find);
-            return find;
-        }
-        return titleFind;
+        return ticketRepository
+                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(word)
+                .stream()
+                .map(TicketResponseDto::new)
+                .toList();
     }
 
     public TicketResponseDto findById(Long id) {
