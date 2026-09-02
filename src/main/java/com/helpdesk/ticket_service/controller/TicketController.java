@@ -3,6 +3,7 @@ package com.helpdesk.ticket_service.controller;
 import com.helpdesk.ticket_service.Enums.Status;
 import com.helpdesk.ticket_service.dto.*;
 import com.helpdesk.ticket_service.service.TicketService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,8 +14,9 @@ import java.net.URI;
 import java.util.List;
 
 @RestController
-@RequestMapping("/tickets")
+@RequestMapping("/api/tickets")
 @RequiredArgsConstructor
+@Tag(name = "Tickets", description = "Abertura, consulta e gestão de chamados de suporte")
 public class TicketController {
 
     private final TicketService ticketService;
@@ -32,7 +34,7 @@ public class TicketController {
     }
 
     @PatchMapping("/{id}/technician={technician}")
-    public ResponseEntity<TicketResponseDto> assigneTicket(
+    public ResponseEntity<TicketResponseDto> assignTicket(
             @PathVariable Long id,
             @PathVariable("technician") Long technician ){
         return ResponseEntity.ok().body(ticketService.assignTicket(id, technician));
@@ -41,7 +43,7 @@ public class TicketController {
     @PatchMapping("/{id}/status={status}")
     public ResponseEntity<TicketResponseDto> updateTicketStatus(
             @PathVariable Long id,
-            @PathVariable("status") @Valid Status status){
+            @PathVariable("status") Status status){
         return ResponseEntity.ok().body(ticketService.updateTicketStatus(id, status));
     }
 
@@ -61,7 +63,7 @@ public class TicketController {
 
     @GetMapping("/search")
     public ResponseEntity<List<TicketResponseDto>> searchTickets(
-            @PathVariable(name = "word")
+            @RequestParam(name = "word")
             String word) {
         return ResponseEntity.ok().body(ticketService.searchTickets(word));
     }

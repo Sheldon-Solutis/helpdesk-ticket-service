@@ -18,5 +18,5 @@ public interface TicketRepository extends JpaRepository<Ticket,Long> {
     List<Ticket> findByCreatedAtBetween(LocalDateTime start, LocalDateTime end);
     List<Ticket> findByCreatedAtAfter(LocalDateTime start);
 
-    List<Ticket> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String description);
+    List<Ticket> findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String title, String description);
 }

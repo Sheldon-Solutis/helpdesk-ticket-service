@@ -3,6 +3,7 @@ package com.helpdesk.ticket_service.service;
 import com.helpdesk.ticket_service.Enums.Category;
 import com.helpdesk.ticket_service.Enums.Priority;
 import com.helpdesk.ticket_service.Enums.Status;
+import com.helpdesk.ticket_service.client.UserServiceClient;
 import com.helpdesk.ticket_service.dto.TicketCreateDto;
 import com.helpdesk.ticket_service.dto.TicketResponseDto;
 import com.helpdesk.ticket_service.dto.TicketUpdateDto;
@@ -16,10 +17,12 @@ import com.helpdesk.ticket_service.ticketRepository.TicketRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -35,6 +38,7 @@ public class TicketService {
 
     private final TicketRepository ticketRepository;
     private final TicketEventPublisher ticketEventPublisher;
+    private final UserServiceClient userServiceClient;
 
     public List<TicketResponseDto> TicketFilter(String status, String category, String priority) {
         if (status == null) {
@@ -73,7 +77,7 @@ public class TicketService {
 
     public List<TicketResponseDto> searchTickets(String word) {
         return ticketRepository
-                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(word)
+                .findByTitleContainingIgnoreCaseOrDescriptionContainingIgnoreCase(word, word)
                 .stream()
                 .map(TicketResponseDto::new)
                 .toList();
@@ -96,6 +100,13 @@ public class TicketService {
 
     @Transactional
     public TicketResponseDto createTicket(TicketCreateDto dto, Long id){
+        // Requisito do desafio: validar customerId no user-service antes de
+        // criar o chamado (não existia antes).
+        if (!userServiceClient.exists(id)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "customerId inválido: nenhum usuário ativo encontrado com id " + id);
+        }
+
         Ticket newTicket = new Ticket(dto);
         newTicket.setCustomerId(id);
 
@@ -178,6 +189,13 @@ public class TicketService {
 
     @Transactional
     public TicketResponseDto assignTicket(Long id, Long technician) {
+        // Requisito do desafio: validar technicianId no user-service antes
+        // de atribuir o chamado (não existia antes).
+        if (!userServiceClient.exists(technician)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "technicianId inválido: nenhum usuário ativo encontrado com id " + technician);
+        }
+
         Ticket ticket = ticketRepository.findById(id)
                 .orElseThrow(() ->
                         new EntityNotFoundException("Ticket não encontrado"));
@@ -213,14 +231,17 @@ public class TicketService {
 
         Status oldStatus = ticket.getStatus();
 
-        if(!dto.getStatus().toString().isEmpty()){
+        // Antes chamava dto.getStatus().toString() sem checar null e
+        // estourava NullPointerException em qualquer update parcial que
+        // não mexesse no status (idem category/description).
+        if (dto.getStatus() != null) {
             validateStatusTransition(ticket.getStatus(), dto.getStatus());
             ticket.setStatus(dto.getStatus());
         }
 
-        if(!dto.getCategory().toString().isEmpty()) ticket.setCategory(dto.getCategory());
+        if (dto.getCategory() != null) ticket.setCategory(dto.getCategory());
 
-        if(!dto.getDescription().isEmpty()) ticket.setDescription(dto.getDescription());
+        if (dto.getDescription() != null && !dto.getDescription().isBlank()) ticket.setDescription(dto.getDescription());
 
         ticketRepository.save(ticket);
 
@@ -259,7 +280,7 @@ public class TicketService {
                 toDelete.getId(),
                 toDelete.getCustomerId(),
                 toDelete.getTechnicianId(),
-                toDelete.getTitle().toString(),
+                toDelete.getTitle(),
                 LocalDateTime.now()
         );
 
