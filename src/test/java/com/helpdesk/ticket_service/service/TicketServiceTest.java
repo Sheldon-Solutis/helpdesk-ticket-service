@@ -29,6 +29,17 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+/**
+ * Testes unitários das regras de negócio do ticket-service: status inicial
+ * sempre OPEN, transições de status controladas, validação cruzada com o
+ * user-service, e publicação de evento pra cada mudança relevante.
+ *
+ * Fora de um contexto Spring/@Transactional real,
+ * TransactionSynchronizationManager.isActualTransactionActive() é sempre
+ * false, então o TicketService publica os eventos direto (branch "else"),
+ * o que permite verificar ticketEventPublisher.publish(...) normalmente
+ * com Mockito puro, sem precisar de @SpringBootTest.
+ */
 @ExtendWith(MockitoExtension.class)
 class TicketServiceTest {
 

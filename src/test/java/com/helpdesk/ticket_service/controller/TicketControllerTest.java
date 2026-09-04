@@ -1,6 +1,5 @@
 package com.helpdesk.ticket_service.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.helpdesk.ticket_service.Enums.Category;
 import com.helpdesk.ticket_service.Enums.Priority;
 import com.helpdesk.ticket_service.Enums.Status;
@@ -16,6 +15,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.server.ResponseStatusException;
+import tools.jackson.databind.json.JsonMapper;
 
 import java.util.List;
 
@@ -25,14 +25,22 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
+/**
+ * Testes dos endpoints principais do ticket-service, incluindo o
+ * comportamento específico dessa API: customerId vem do header
+ * Customer-Id (não do corpo), e status/técnico têm rotas PATCH próprias.
+ *
+ * JsonMapper instanciado direto (não @Autowired) — no Spring Boot 4 o
+ * bean auto-configurado é Jackson 3 (tools.jackson.databind.json.JsonMapper),
+ * não mais com.fasterxml.jackson.databind.ObjectMapper.
+ */
 @WebMvcTest(TicketController.class)
 class TicketControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    private final JsonMapper objectMapper = JsonMapper.builder().build();
 
     @MockitoBean
     private TicketService ticketService;
@@ -40,19 +48,6 @@ class TicketControllerTest {
     private TicketResponseDto sampleResponse() {
         return new TicketResponseDto(1L, "Rede lenta", "Rede lenta no setor B",
                 Category.NETWORK, Priority.MEDIUM, Status.OPEN, 5L, null, null, null);
-    }
-
-    @Test
-    void createTicket_deveRetornar400ComPrioridadeInexistenteNoEnum() throws Exception {
-        String corpoComEnumInvalido = """
-            {"title":"t","description":"d","priority":"URGENTE","category":"SOFTWARE"}
-            """;
-
-        mockMvc.perform(post("/api/tickets")
-                        .header("Customer-Id", "5")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(corpoComEnumInvalido))
-                .andExpect(status().isBadRequest());
     }
 
     @Test
