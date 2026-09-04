@@ -25,15 +25,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-/**
- * Testes dos endpoints principais do ticket-service, incluindo o
- * comportamento específico dessa API: customerId vem do header
- * Customer-Id (não do corpo), e status/técnico têm rotas PATCH próprias.
- *
- * JsonMapper instanciado direto (não @Autowired) — no Spring Boot 4 o
- * bean auto-configurado é Jackson 3 (tools.jackson.databind.json.JsonMapper),
- * não mais com.fasterxml.jackson.databind.ObjectMapper.
- */
 @WebMvcTest(TicketController.class)
 class TicketControllerTest {
 
