@@ -43,6 +43,19 @@ class TicketControllerTest {
     }
 
     @Test
+    void createTicket_deveRetornar400ComPrioridadeInexistenteNoEnum() throws Exception {
+        String corpoComEnumInvalido = """
+            {"title":"t","description":"d","priority":"URGENTE","category":"SOFTWARE"}
+            """;
+
+        mockMvc.perform(post("/api/tickets")
+                        .header("Customer-Id", "5")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(corpoComEnumInvalido))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void createTicket_deveRetornar201QuandoCustomerIdHeaderPresente() throws Exception {
         TicketCreateDto request = new TicketCreateDto();
         request.setTitle("Rede lenta");
