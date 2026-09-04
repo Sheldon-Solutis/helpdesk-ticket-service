@@ -41,35 +41,32 @@ class TicketControllerTest {
                 Category.NETWORK, Priority.MEDIUM, Status.OPEN, 5L, null, null, null);
     }
 
-    @Test
-    void createTicket_deveRetornar201QuandoCustomerIdHeaderPresente() throws Exception {
-        TicketCreateDto request = new TicketCreateDto();
-        request.setTitle("Rede lenta");
-        request.setDescription("Rede lenta no setor B");
-        request.setPriority(Priority.MEDIUM);
-        request.setCategory(Category.NETWORK);
+    private TicketCreateDto sampleCreateDto(Long customerId) {
+        TicketCreateDto dto = new TicketCreateDto();
+        dto.setTitle("Rede lenta");
+        dto.setDescription("Rede lenta no setor B");
+        dto.setPriority(Priority.MEDIUM);
+        dto.setCategory(Category.NETWORK);
+        dto.setCustomerId(customerId);
+        return dto;
+    }
 
+    @Test
+    void createTicket_deveRetornar201ComCustomerIdNoCorpo() throws Exception {
         when(ticketService.createTicket(any(TicketCreateDto.class), eq(5L))).thenReturn(sampleResponse());
 
         mockMvc.perform(post("/api/tickets")
-                        .header("Customer-Id", "5")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(sampleCreateDto(5L))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("OPEN"));
     }
 
     @Test
-    void createTicket_deveRetornar400SemHeaderCustomerId() throws Exception {
-        TicketCreateDto request = new TicketCreateDto();
-        request.setTitle("Rede lenta");
-        request.setDescription("Rede lenta no setor B");
-        request.setPriority(Priority.MEDIUM);
-        request.setCategory(Category.NETWORK);
-
+    void createTicket_deveRetornar400SemCustomerIdNoCorpo() throws Exception {
         mockMvc.perform(post("/api/tickets")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(sampleCreateDto(null))))
                 .andExpect(status().isBadRequest());
     }
 
@@ -79,7 +76,6 @@ class TicketControllerTest {
         // título e descrição em branco: violam @NotBlank
 
         mockMvc.perform(post("/api/tickets")
-                        .header("Customer-Id", "5")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalid)))
                 .andExpect(status().isBadRequest());
@@ -87,19 +83,12 @@ class TicketControllerTest {
 
     @Test
     void createTicket_deveRetornar400QuandoCustomerIdInvalido() throws Exception {
-        TicketCreateDto request = new TicketCreateDto();
-        request.setTitle("Rede lenta");
-        request.setDescription("Rede lenta no setor B");
-        request.setPriority(Priority.MEDIUM);
-        request.setCategory(Category.NETWORK);
-
         when(ticketService.createTicket(any(TicketCreateDto.class), eq(999L)))
                 .thenThrow(new ResponseStatusException(HttpStatus.BAD_REQUEST, "customerId inválido"));
 
         mockMvc.perform(post("/api/tickets")
-                        .header("Customer-Id", "999")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
+                        .content(objectMapper.writeValueAsString(sampleCreateDto(999L))))
                 .andExpect(status().isBadRequest());
     }
 
