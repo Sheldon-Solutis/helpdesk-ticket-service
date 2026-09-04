@@ -82,9 +82,8 @@ public class TicketController {
 
     @PostMapping
     public ResponseEntity<TicketResponseDto> createTicket(
-            @RequestBody @Valid TicketCreateDto dto,
-            @RequestHeader(name = "Customer-Id") Long id) {
-        TicketResponseDto responseDto = ticketService.createTicket(dto, id);
+            @RequestBody @Valid TicketCreateDto dto) {
+        TicketResponseDto responseDto = ticketService.createTicket(dto, dto.getCustomerId());
 
         URI location = ServletUriComponentsBuilder.fromCurrentRequest()
                 .path("/{id}")

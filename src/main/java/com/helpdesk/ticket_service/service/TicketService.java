@@ -85,8 +85,6 @@ public class TicketService {
 
     @Transactional
     public TicketResponseDto createTicket(TicketCreateDto dto, Long id){
-        // Requisito do desafio: validar customerId no user-service antes de
-        // criar o chamado (não existia antes).
         if (!userServiceClient.exists(id)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "customerId inválido: nenhum usuário ativo encontrado com id " + id);
@@ -174,8 +172,6 @@ public class TicketService {
 
     @Transactional
     public TicketResponseDto assignTicket(Long id, Long technician) {
-        // Requisito do desafio: validar technicianId no user-service antes
-        // de atribuir o chamado (não existia antes).
         if (!userServiceClient.exists(technician)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "technicianId inválido: nenhum usuário ativo encontrado com id " + technician);
@@ -216,9 +212,6 @@ public class TicketService {
 
         Status oldStatus = ticket.getStatus();
 
-        // Antes chamava dto.getStatus().toString() sem checar null e
-        // estourava NullPointerException em qualquer update parcial que
-        // não mexesse no status (idem category/description).
         if (dto.getStatus() != null) {
             validateStatusTransition(ticket.getStatus(), dto.getStatus());
             ticket.setStatus(dto.getStatus());

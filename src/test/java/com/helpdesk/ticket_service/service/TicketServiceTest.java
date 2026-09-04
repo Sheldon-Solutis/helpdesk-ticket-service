@@ -29,17 +29,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-/**
- * Testes unitários das regras de negócio do ticket-service: status inicial
- * sempre OPEN, transições de status controladas, validação cruzada com o
- * user-service, e publicação de evento pra cada mudança relevante.
- *
- * Fora de um contexto Spring/@Transactional real,
- * TransactionSynchronizationManager.isActualTransactionActive() é sempre
- * false, então o TicketService publica os eventos direto (branch "else"),
- * o que permite verificar ticketEventPublisher.publish(...) normalmente
- * com Mockito puro, sem precisar de @SpringBootTest.
- */
+
 @ExtendWith(MockitoExtension.class)
 class TicketServiceTest {
 
@@ -132,7 +122,6 @@ class TicketServiceTest {
                 .isInstanceOf(EntityNotFoundException.class)
                 .hasMessageContaining("resolvido");
 
-        // a transição válida (RESOLVED -> CLOSED) deve funcionar sem exceção
         when(ticketRepository.save(any(Ticket.class))).thenAnswer(inv -> inv.getArgument(0));
         ticketService.updateTicketStatus(1L, Status.CLOSED);
         assertThat(resolved.getStatus()).isEqualTo(Status.CLOSED);
@@ -172,7 +161,7 @@ class TicketServiceTest {
         when(ticketRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(ticketRepository.save(any(Ticket.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        // status/category/description nulos: update parcial não pode quebrar
+        // status/category/description nulos
         TicketUpdateDto dto = new TicketUpdateDto();
 
         TicketResponseDto response = ticketService.updateTicket(1L, dto);

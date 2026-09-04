@@ -24,7 +24,6 @@ public class TicketCreateDto {
     @NotNull
     private Priority priority;
 
-    // Preenchido pelo service a partir do header Customer-Id, não do corpo
-    // da requisição — mas fica aqui pro Ticket(TicketCreateDto) enxergar.
+    @NotNull
     private Long customerId;
 }
