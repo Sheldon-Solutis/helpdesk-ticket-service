@@ -14,6 +14,7 @@ import com.helpdesk.ticket_service.messaging.event.TicketStatusChangedEvent;
 import com.helpdesk.ticket_service.messaging.publisher.TicketEventPublisher;
 import com.helpdesk.ticket_service.model.Ticket;
 import com.helpdesk.ticket_service.ticketRepository.TicketRepository;
+import com.helpdesk.ticket_service.ticketRepository.TicketSpecifications;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -41,28 +42,12 @@ public class TicketService {
     private final UserServiceClient userServiceClient;
 
     public List<TicketResponseDto> TicketFilter(String status, String category, String priority) {
-        if (status == null) {
-            if(category == null) {
-                if(priority == null) {
-                    return ticketRepository.findAll()
-                            .stream()
-                            .map(TicketResponseDto::new)
-                            .toList();
-                }
+        Status statusEnum = status != null ? Status.valueOf(status.toUpperCase()) : null;
+        Category categoryEnum = category != null ? Category.valueOf(category.toUpperCase()) : null;
+        Priority priorityEnum = priority != null ? Priority.valueOf(priority.toUpperCase()) : null;
 
-                return ticketRepository.findByPriority(Priority.valueOf(priority.toUpperCase()))
-                        .stream()
-                        .map(TicketResponseDto::new)
-                        .toList();
-            }
-
-            return ticketRepository.findByCategory(Category.valueOf(category.toUpperCase()))
-                    .stream()
-                    .map(TicketResponseDto::new)
-                    .toList();
-        }
-
-        return ticketRepository.findByStatus(Status.valueOf(status.toUpperCase()))
+        return ticketRepository.findAll(TicketSpecifications
+                        .withFilters(statusEnum, categoryEnum, priorityEnum))
                 .stream()
                 .map(TicketResponseDto::new)
                 .toList();
